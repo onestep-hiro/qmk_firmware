@@ -17,9 +17,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include QMK_KEYBOARD_H
+#define _QWERTY 0
+#define _LOWER 1
+#define _RAISE 2
+#define _ADJUST 3
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-    [0] = LAYOUT_split_3x6_3(
+    [_QWERTY] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
        KC_TAB,    KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,                         KC_Y,    KC_U,    KC_I,    KC_O,   KC_P,  KC_BSPC,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
@@ -32,7 +36,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   ),
 
-    [1] = LAYOUT_split_3x6_3(
+    [_LOWER] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
        KC_TAB,    KC_1,    KC_2,    KC_3,    KC_4,    KC_5,                         KC_6,    KC_7,    KC_8,    KC_9,    KC_0, KC_BSPC,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
@@ -44,7 +48,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                       //`--------------------------'  `--------------------------'
   ),
 
-    [2] = LAYOUT_split_3x6_3(
+    [_RAISE] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
        KC_TAB, KC_EXLM,   KC_AT, KC_HASH,  KC_DLR, KC_PERC,                      KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_BSPC,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
@@ -56,7 +60,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                       //`--------------------------'  `--------------------------'
   ),
 
-    [3] = LAYOUT_split_3x6_3(
+    [_ADJUST] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
         QK_BOOT, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
@@ -73,7 +77,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   #include <print.h>
 #endif
 
-void matrix_init_kb(void) {
+void keyboard_post_init_user(void) {
   debug_enable = true;
   debug_matrix = true;
   debug_mouse  = true;
@@ -81,97 +85,138 @@ void matrix_init_kb(void) {
 
 //ここからポインティングデバイス
 
+// #ifdef Flase
+// // #ifdef MASTER_LEFT
+
+// // Set Parameters
+// uint16_t minAxisValue = 190;  // Depends on each stick
+// uint16_t maxAxisValue = 840;
+
+// uint8_t maxCursorSpeed = 10;
+// uint8_t maxScrollSpeed = 1;
+// uint8_t speedRegulator = 50;  // Lower Values Create Faster Movement
+
+// int8_t xPolarity = -1;
+// int8_t yPolarity = 1;
+// int8_t hPolarity = 1;
+// int8_t vPolarity = 1;
+
+// uint8_t cursorTimeout = 10;
+// uint8_t scrollTimeout = 100;
+
+// int16_t xOrigin, yOrigin;
+
+// uint16_t lastCursor = 0;
+
+// int16_t axisCoordinate(uint8_t pin, uint16_t origin) {
+//     int8_t  direction;
+//     int16_t distanceFromOrigin;
+//     int16_t range;
+
+//     int16_t position = analogReadPin(pin);
+
+//     if (origin == position) {
+//         return 0;
+//     } else if (origin > position) {
+//         distanceFromOrigin = origin - position;
+//         range              = origin - minAxisValue;
+//         direction          = -1;
+//     } else {
+//         distanceFromOrigin = position - origin;
+//         range              = maxAxisValue - origin;
+//         direction          = 1;
+//     }
+
+//     float   percent    = (float)distanceFromOrigin  / range;
+//     int16_t coordinate = (int16_t)(percent * 127);
+//     if (coordinate < 0) {
+//         return 0;
+//     } else if (coordinate > 127) {
+//         return 127 * direction;
+//     } else {
+//         return coordinate * direction;
+//     }
+// }
+
+// int8_t axisToMouseComponent(uint8_t pin, int16_t origin, uint8_t maxSpeed, int8_t polarity) {
+//     int coordinate = axisCoordinate(pin, origin);
+//     if (coordinate == 0) {
+//         return 0;
+//     } else {
+//         float percent = (float)coordinate / 127;
+//         return percent * maxSpeed * polarity * (abs(coordinate) / speedRegulator);
+//     }
+// }
+
+// #define is_master true
+
+// // ポインティングデバイスの処理
+// void pointing_device_task(void) {
+//     uprintf("task is_master:%s",is_master);
+//     if (is_master == true){
+//         uprintf("task xOrigin:%s",xOrigin);
+//         uprintf("task yOrigin:%s",yOrigin);
+//         report_mouse_t report = pointing_device_get_report();
+//         // Layer1: Scroll
+//         if(layer_state_is(_LOWER)) {
+//             if (timer_elapsed(lastCursor) > scrollTimeout) {
+//                 lastCursor = timer_read();
+//                 report.h   = axisToMouseComponent(B4, xOrigin, maxCursorSpeed, hPolarity);
+//                 report.v   = axisToMouseComponent(B5, yOrigin, maxCursorSpeed, vPolarity);
+//             }
+//         // Layer0: Cursor
+//         } else {
+//             if (timer_elapsed(lastCursor) > cursorTimeout) {
+//                 lastCursor = timer_read();
+//                 report.x   = axisToMouseComponent(B4, xOrigin, maxCursorSpeed, xPolarity);
+//                 report.y   = axisToMouseComponent(B5, yOrigin, maxCursorSpeed, yPolarity);
+//             }
+//         }
+
+//         pointing_device_set_report(report);
+//     }
+//     return pointing_device_send();
+// }
+
+// // ポインティングデバイスの原点を初期化する
+// void matrix_init_user(void) {
+//     uprintf("user is_master :%s",is_master);
+//     if (is_master == true){
+//         // xOrigin = analogReadPin(B4) * 20;
+//         // yOrigin = analogReadPin(B5);
+//         uprintf("user xOrigin%s:",xOrigin);
+//         uprintf("user yOrigin%s:",yOrigin);
+//     }else{
+//         xOrigin = 0;
+//         yOrigin = 0;
+//     }
+// }
+// #endif
+
 #ifdef MASTER_RIGHT
 
-// Set Parameters
-uint16_t minAxisValue = 190;  // Depends on each stick
-uint16_t maxAxisValue = 840;
+#define set_scrolling false
+#define ANGLE_UNIT 15
+#define ANGLE_MAX (360 / ANGLE_UNIT)
+uint8_t angle = 0;
 
-uint8_t maxCursorSpeed = 2;
-uint8_t maxScrollSpeed = 1;
-uint8_t speedRegulator = 5;  // Lower Values Create Faster Movement
-
-int8_t xPolarity = -1;
-int8_t yPolarity = 1;
-int8_t hPolarity = 1;
-int8_t vPolarity = 1;
-
-uint8_t cursorTimeout = 10;
-uint8_t scrollTimeout = 100;
-
-int16_t xOrigin, yOrigin;
-
-uint16_t lastCursor = 0;
-
-int16_t axisCoordinate(uint8_t pin, uint16_t origin) {
-    int8_t  direction;
-    int16_t distanceFromOrigin;
-    int16_t range;
-
-    int16_t position = analogReadPin(pin);
-
-    if (origin == position) {
-        return 0;
-    } else if (origin > position) {
-        distanceFromOrigin = origin - position;
-        range              = origin - minAxisValue;
-        direction          = -1;
-    } else {
-        distanceFromOrigin = position - origin;
-        range              = maxAxisValue - origin;
-        direction          = 1;
-    }
-
-    float   percent    = (float)distanceFromOrigin  / range;
-    int16_t coordinate = (int16_t)(percent * 127);
-    if (coordinate < 0) {
-        return 0;
-    } else if (coordinate > 127) {
-        return 127 * direction;
-    } else {
-        return coordinate * direction;
-    }
+report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
+    double rad     = ANGLE_UNIT * angle * (M_PI / 180);
+    int8_t x_rev   = +mouse_report.x * cos(rad) - mouse_report.y * sin(rad);
+    int8_t y_rev   = +mouse_report.x * sin(rad) + mouse_report.y * cos(rad);
+    mouse_report.x = x_rev;
+    mouse_report.y = y_rev;
+    return pointing_device_task_user(mouse_report);
 }
 
-int8_t axisToMouseComponent(uint8_t pin, int16_t origin, uint8_t maxSpeed, int8_t polarity) {
-    int coordinate = axisCoordinate(pin, origin);
-    if (coordinate == 0) {
-        return 0;
-    } else {
-        float percent = (float)coordinate / 127;
-        return percent * maxSpeed * polarity * (abs(coordinate) / speedRegulator);
+report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
+    uprintf("user pointing_device_task_user %s",mouse_report.x);
+    if (layer_state_is(_LOWER)) {
+        mouse_report.h = mouse_report.x;
+        mouse_report.v = mouse_report.y;
+        mouse_report.x = 0;
+        mouse_report.y = 0;
     }
-}
-
-void pointing_device_task(void) {
-
-    if (is_master == true){
-        report_mouse_t report = pointing_device_get_report();
-
-        if(layer_state_is(_RAISE)) {
-            if (timer_elapsed(lastCursor) > scrollTimeout) {
-                lastCursor = timer_read();
-                report.h   = axisToMouseComponent(B4, xOrigin, maxCursorSpeed, hPolarity);
-                report.v   = axisToMouseComponent(B5, yOrigin, maxCursorSpeed, vPolarity);
-            }
-        } else {
-            if (timer_elapsed(lastCursor) > cursorTimeout) {
-                lastCursor = timer_read();
-                report.x   = axisToMouseComponent(B4, xOrigin, maxCursorSpeed, xPolarity);
-                report.y   = axisToMouseComponent(B5, yOrigin, maxCursorSpeed, yPolarity);
-            }
-        }
-
-        pointing_device_set_report(report);
-        pointing_device_send();
-
-    }
-}
-
-void matrix_init_user(void) {
-    if (is_master == true){
-        xOrigin = analogReadPin(B4);
-        yOrigin = analogReadPin(B5);
-    }
+    return mouse_report;
 }
 #endif
