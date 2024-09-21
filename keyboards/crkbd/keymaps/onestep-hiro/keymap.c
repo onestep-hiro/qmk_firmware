@@ -89,6 +89,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 //ここから右側端末の ポインティングデバイス
+#ifdef POINTING_DEVICE_ENABLE
 #ifdef MASTER_RIGHT
 
 #define ANGLE_UNIT 15
@@ -143,4 +144,5 @@ report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
     }
     return pointing_device_task_user(mouse_report);
 }
+#endif
 #endif
