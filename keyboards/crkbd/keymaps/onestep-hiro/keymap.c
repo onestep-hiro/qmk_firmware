@@ -98,7 +98,85 @@ uint8_t angle = 0;
 int cnt_mouse_y = 0;
 int cnt_mouse_x = 0;
 
+
+typedef union {
+    uint32_t raw;
+    struct {
+        uint8_t cpi_idx;
+        uint8_t scrl_div;
+        uint8_t rotation_angle;
+        int8_t scrl_inv;
+        bool scrl_mode;
+        report_mouse_t last_mouse;
+    };
+} cocot_config_t;
+
+extern cocot_config_t cocot_config;
+
+// Invert vertical scroll direction
+#ifndef COCOT_SCROLL_INV_DEFAULT
+#    define COCOT_SCROLL_INV_DEFAULT 1
+#endif
+
+#ifndef COCOT_CPI_OPTIONS
+#    define COCOT_CPI_OPTIONS { 250, 500, 750, 1000, 1250 }
+#endif
+#ifndef COCOT_CPI_DEFAULT
+#    define COCOT_CPI_DEFAULT 4
+#endif
+
+#ifndef COCOT_SCROLL_DIVIDERS
+#    define COCOT_SCROLL_DIVIDERS { 1, 2, 3, 4, 5, 6 }
+#endif
+#ifndef COCOT_SCROLL_DIV_DEFAULT
+#    define COCOT_SCROLL_DIV_DEFAULT 4
+#endif
+
+
+#ifndef COCOT_ROTATION_ANGLE
+#    define COCOT_ROTATION_ANGLE { -60, -45, -30, -15, 0, 15, 30, 45, 60 }
+#endif
+#ifndef COCOT_ROTATION_DEFAULT
+#    define COCOT_ROTATION_DEFAULT 2
+#endif
+
+
+// cocot_config構造体のインスタンスを宣言
+// cocot_config_t cocot_config;
+// CPIオプションの配列を定義
+uint16_t cpi_array[] = COCOT_CPI_OPTIONS;
+// スクロール分割オプションの配列を定義
+uint16_t scrl_div_array[] = COCOT_SCROLL_DIVIDERS;
+// 回転角度オプションの配列を定義
+uint16_t angle_array[] = COCOT_ROTATION_ANGLE;
+// CPIオプションの配列サイズを計算
+#define CPI_OPTION_SIZE (sizeof(cpi_array) / sizeof(uint16_t))
+// スクロール分割オプションの配列サイズを計算
+#define SCRL_DIV_SIZE (sizeof(scrl_div_array) / sizeof(uint16_t))
+// 回転角度オプションの配列サイズを計算
+#define ANGLE_SIZE (sizeof(angle_array) / sizeof(uint16_t))
+
+// この関数はキーボードのEEPROM設定を初期化します。
+// cocot_config構造体の各フィールドをデフォルト値に設定し、
+// その後、設定をEEPROMに書き込みます。
+// 最後に、ユーザー定義の初期化関数を呼び出します。
+// void eeconfig_init_kb(void) {
+//     cocot_config.cpi_idx = COCOT_CPI_DEFAULT;
+//     cocot_config.scrl_div = COCOT_SCROLL_DIV_DEFAULT;
+//     cocot_config.rotation_angle = COCOT_ROTATION_DEFAULT;
+//     cocot_config.scrl_inv = COCOT_SCROLL_INV_DEFAULT;
+//     cocot_config.scrl_mode = false;
+//     eeconfig_update_kb(cocot_config.raw);
+//     eeconfig_init_user();
+//     adns5050_write_reg(0x22, 0b10000 | 0x80);
+// }
+
 report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
+    // // CPIを設定する
+    // pointing_device_set_cpi(cpi_array[4]);
+    // ADNS5050のレジスタに書き込む
+    adns5050_write_reg(0x22, 0b10000 | 0x80);
+
     double speed_adjustment = 0.7;
     // MO(1)の時は高速モード
     if (layer_state_is(_LOWER)) {
